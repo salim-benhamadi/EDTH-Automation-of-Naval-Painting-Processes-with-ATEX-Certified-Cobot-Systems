@@ -5,7 +5,7 @@ Configuration file for all project settings
 # Camera Settings
 CAMERA_RESOLUTION = "HD720"
 DEPTH_MODE = "NEURAL"
-SCAN_DURATION = 15
+SCAN_DURATION = 30
 MESH_RESOLUTION = 0.01
 MAPPING_RANGE = 2.0
 

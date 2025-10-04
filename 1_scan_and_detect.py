@@ -1,5 +1,5 @@
 """
-Step 1: Scan object with ZED camera and detect/save it
+Step 1: Scan object with ZED camera and save it
 """
 import pyvista as pv
 import numpy as np
@@ -46,6 +46,7 @@ def scan_object(object_name, duration=SCAN_DURATION):
     
     plotter = pv.Plotter()
     plotter.add_axes()
+    plotter.add_text(f"Scanning: {object_name}", position='upper_left', font_size=12)
     
     runtime_params = sl.RuntimeParameters()
     start_time = time.time()
@@ -82,10 +83,10 @@ def scan_object(object_name, duration=SCAN_DURATION):
                         pv_mesh = pv.PolyData(vertices, faces)
                         
                         if mesh_actor is None:
-                            mesh_actor = plotter.add_mesh(pv_mesh, color='white')
+                            mesh_actor = plotter.add_mesh(pv_mesh, color='white', lighting=True)
                         else:
                             plotter.remove_actor(mesh_actor)
-                            mesh_actor = plotter.add_mesh(pv_mesh, color='white')
+                            mesh_actor = plotter.add_mesh(pv_mesh, color='white', lighting=True)
                         
                         plotter.render()
     
@@ -93,42 +94,28 @@ def scan_object(object_name, duration=SCAN_DURATION):
     
     # Save mesh
     os.makedirs(SCANS_DIR, exist_ok=True)
-    output_path = f"{SCANS_DIR}/{object_name}_raw.obj"
+    output_path = f"{SCANS_DIR}/{object_name}_scanned.obj"
     
     if last_mesh is not None and last_mesh.vertices.size > 0:
         last_mesh.save(output_path)
-        print(f"✓ Saved to {output_path}")
+        print(f"\n✓ Scan completed and saved to {output_path}")
         print(f"  Vertices: {len(last_mesh.vertices)}, Triangles: {len(last_mesh.triangles)}")
+        
+        # Visualize final result
+        final_mesh = pv.read(output_path)
+        plotter = pv.Plotter()
+        plotter.add_text(f"Final Scan: {object_name}", position='upper_left', font_size=12)
+        plotter.add_mesh(final_mesh, color='lightblue', lighting=True, show_edges=False)
+        plotter.add_axes()
+        plotter.show()
+    else:
+        print("\n✗ Scan failed - no mesh data captured")
+        output_path = None
     
+    # Cleanup
     zed.disable_spatial_mapping()
     zed.disable_positional_tracking()
     zed.close()
-    
-    return output_path
-
-def detect_and_crop_object(mesh_path, object_name):
-    """Simple bounding box detection and cropping"""
-    print(f"\nDetecting and cropping {object_name}...")
-    
-    mesh = pv.read(mesh_path)
-    
-    # Simple detection: remove points far from center
-    center = mesh.center
-    distances = np.linalg.norm(mesh.points - center, axis=1)
-    threshold = np.percentile(distances, 75)  # Keep closest 75% of points
-    
-    # Create mask
-    mask = distances < threshold
-    
-    # Extract object (simplified - in reality you'd use more sophisticated methods)
-    cropped_mesh = mesh.extract_points(mask)
-    
-    # Save detected object
-    output_path = f"{SCANS_DIR}/{object_name}_detected.obj"
-    cropped_mesh.save(output_path)
-    
-    print(f"✓ Detected object saved to {output_path}")
-    print(f"  Original: {mesh.n_points} points → Detected: {cropped_mesh.n_points} points")
     
     return output_path
 
@@ -140,6 +127,10 @@ if __name__ == "__main__":
     # Scan
     mesh_path = scan_object(object_name)
     
-    # Detect and crop
     if mesh_path:
-        detect_and_crop_object(mesh_path, object_name)
+        print(f"\n{'='*50}")
+        print("Scan Complete!")
+        print(f"{'='*50}")
+        print(f"Next step: python 2_filter_and_isolate.py {object_name}")
+    else:
+        print("\n✗ Scanning failed. Please check camera connection and try again.")
