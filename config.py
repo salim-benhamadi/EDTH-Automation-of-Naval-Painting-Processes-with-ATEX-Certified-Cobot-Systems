@@ -1,0 +1,34 @@
+"""
+Configuration file for all project settings
+"""
+
+# Camera Settings
+CAMERA_RESOLUTION = "HD720"
+DEPTH_MODE = "NEURAL"
+SCAN_DURATION = 15
+MESH_RESOLUTION = 0.01
+MAPPING_RANGE = 2.0
+
+# Detection Settings
+CONFIDENCE_THRESHOLD = 0.5
+TARGET_OBJECT = "cup"
+
+# Filtering Settings
+NOISE_FILTER_NEIGHBORS = 20
+NOISE_FILTER_STD_RATIO = 2.0
+SMOOTHING_ITERATIONS = 5
+
+# RL Settings
+ALGORITHM = "PPO"
+LEARNING_RATE = 3e-4
+BATCH_SIZE = 64
+EPISODES = 1000
+MAX_STEPS = 500
+GAMMA = 0.99
+
+# Paths
+DATA_DIR = "data"
+SCANS_DIR = f"{DATA_DIR}/scans"
+FILTERED_DIR = f"{DATA_DIR}/filtered"
+PAINTED_DIR = f"{DATA_DIR}/painted"
+MODELS_DIR = "models"
